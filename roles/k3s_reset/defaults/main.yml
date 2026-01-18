@@ -1,0 +1,9 @@
+---
+# K3s Reset role defaults
+
+# Remove data directories
+k3s_reset_remove_data: true
+
+# Directories
+k3s_reset_config_dir: /etc/rancher/k3s
+k3s_reset_data_dir: /var/lib/rancher/k3s

@@ -1,0 +1,25 @@
+---
+profile: production
+
+exclude_paths:
+  - .github/
+  - .git/
+
+skip_list:
+  - yaml[line-length]  # Handled by yamllint
+  - name[template]     # Allow Jinja2 in task names
+
+warn_list:
+  - experimental
+
+enable_list:
+  - args
+  - empty-string-compare
+  - no-log-password
+  - no-same-owner
+
+# Offline mode - don't make network requests
+offline: false
+
+# Use progressive mode for gradual adoption
+# progressive: true

@@ -1,0 +1,148 @@
+# {{ ansible_managed }}
+# K3s server configuration
+
+# Cluster token
+token: "{{ k3s_server_token }}"
+
+{% if k3s_server_init | bool %}
+cluster-init: true
+{% elif k3s_server_url != "" %}
+server: "{{ k3s_server_url }}"
+{% endif %}
+
+# Node configuration
+node-name: "{{ k3s_server_node_name }}"
+{% if k3s_server_node_ip != "" %}
+node-ip: "{{ k3s_server_node_ip }}"
+{% endif %}
+{% if k3s_server_node_external_ip != "" %}
+node-external-ip: "{{ k3s_server_node_external_ip }}"
+{% endif %}
+
+{% if k3s_server_node_labels | length > 0 %}
+node-label:
+{% for label in k3s_server_node_labels %}
+  - "{{ label }}"
+{% endfor %}
+{% endif %}
+
+{% if k3s_server_node_taints | length > 0 %}
+node-taint:
+{% for taint in k3s_server_node_taints %}
+  - "{{ taint }}"
+{% endfor %}
+{% endif %}
+
+# Network configuration
+cluster-cidr: "{{ k3s_server_cluster_cidr }}"
+service-cidr: "{{ k3s_server_service_cidr }}"
+cluster-dns: "{{ k3s_server_cluster_dns }}"
+cluster-domain: "{{ k3s_server_cluster_domain }}"
+
+{% if k3s_server_cni == "none" %}
+flannel-backend: none
+{% elif k3s_server_cni == "flannel" %}
+flannel-backend: "{{ k3s_server_flannel_backend }}"
+{% if k3s_server_flannel_iface != "" %}
+flannel-iface: "{{ k3s_server_flannel_iface }}"
+{% endif %}
+{% else %}
+# External CNI: {{ k3s_server_cni }}
+flannel-backend: none
+{% endif %}
+
+# API server configuration
+https-listen-port: {{ k3s_server_https_listen_port }}
+{% if k3s_server_advertise_address != "" %}
+advertise-address: "{{ k3s_server_advertise_address }}"
+{% endif %}
+bind-address: "{{ k3s_server_bind_address }}"
+
+{% if k3s_server_tls_san | length > 0 %}
+tls-san:
+{% for san in k3s_server_tls_san %}
+  - "{{ san }}"
+{% endfor %}
+{% endif %}
+
+{% if k3s_server_disable | length > 0 %}
+disable:
+{% for component in k3s_server_disable %}
+  - "{{ component }}"
+{% endfor %}
+{% endif %}
+
+# Data directory
+data-dir: "{{ k3s_server_data_dir }}"
+
+# Kubeconfig
+write-kubeconfig: "{{ k3s_server_kubeconfig }}"
+write-kubeconfig-mode: "{{ k3s_server_kubeconfig_mode }}"
+
+{% if k3s_server_datastore_endpoint != "" %}
+# External datastore
+datastore-endpoint: "{{ k3s_server_datastore_endpoint }}"
+{% endif %}
+
+{% if k3s_server_etcd_expose_metrics %}
+etcd-expose-metrics: true
+{% endif %}
+
+{% if k3s_server_etcd_snapshot_dir != "" %}
+etcd-snapshot-schedule-cron: "{{ k3s_server_etcd_snapshot_schedule_cron }}"
+etcd-snapshot-retention: {{ k3s_server_etcd_snapshot_retention }}
+etcd-snapshot-dir: "{{ k3s_server_etcd_snapshot_dir }}"
+{% endif %}
+
+{% if k3s_server_etcd_s3 | bool %}
+etcd-s3: true
+etcd-s3-endpoint: "{{ k3s_server_etcd_s3_endpoint }}"
+etcd-s3-bucket: "{{ k3s_server_etcd_s3_bucket }}"
+etcd-s3-region: "{{ k3s_server_etcd_s3_region }}"
+{% if k3s_server_etcd_s3_folder != "" %}
+etcd-s3-folder: "{{ k3s_server_etcd_s3_folder }}"
+{% endif %}
+{% if k3s_server_etcd_s3_access_key != "" %}
+etcd-s3-access-key: "{{ k3s_server_etcd_s3_access_key }}"
+etcd-s3-secret-key: "{{ k3s_server_etcd_s3_secret_key }}"
+{% endif %}
+{% endif %}
+
+# Security
+{% if k3s_server_secrets_encryption | bool %}
+secrets-encryption: true
+{% endif %}
+{% if k3s_server_protect_kernel_defaults | bool %}
+protect-kernel-defaults: true
+{% endif %}
+{% if k3s_server_selinux | bool %}
+selinux: true
+{% endif %}
+
+{% if k3s_server_kubelet_args | length > 0 %}
+kubelet-arg:
+{% for arg in k3s_server_kubelet_args %}
+  - "{{ arg }}"
+{% endfor %}
+{% endif %}
+
+{% if k3s_server_kube_apiserver_args | length > 0 %}
+kube-apiserver-arg:
+{% for arg in k3s_server_kube_apiserver_args %}
+  - "{{ arg }}"
+{% endfor %}
+{% endif %}
+
+{% if k3s_server_kube_controller_args | length > 0 %}
+kube-controller-manager-arg:
+{% for arg in k3s_server_kube_controller_args %}
+  - "{{ arg }}"
+{% endfor %}
+{% endif %}
+
+{% if k3s_server_kube_scheduler_args | length > 0 %}
+kube-scheduler-arg:
+{% for arg in k3s_server_kube_scheduler_args %}
+  - "{{ arg }}"
+{% endfor %}
+{% endif %}

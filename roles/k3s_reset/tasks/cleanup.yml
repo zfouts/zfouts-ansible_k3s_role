@@ -1,0 +1,62 @@
+---
+# Clean up K3s files and directories
+
+- name: Remove K3s data directory
+  ansible.builtin.file:
+    path: "{{ k3s_reset_data_dir }}"
+    state: absent
+  when: k3s_reset_remove_data | bool
+
+- name: Remove K3s config directory
+  ansible.builtin.file:
+    path: "{{ k3s_reset_config_dir }}"
+    state: absent
+  when: k3s_reset_remove_data | bool
+
+- name: Remove K3s binaries
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /usr/local/bin/k3s
+    - /usr/local/bin/kubectl
+    - /usr/local/bin/crictl
+    - /usr/local/bin/ctr
+
+- name: Remove K3s systemd services
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/systemd/system/k3s.service
+    - /etc/systemd/system/k3s-agent.service
+    - /etc/systemd/system/k3s.service.env
+  notify: reload systemd
+
+- name: Remove K3s environment files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/default/k3s
+    - /etc/default/k3s-agent
+    - /etc/sysconfig/k3s
+    - /etc/sysconfig/k3s-agent
+
+- name: Remove K3s kernel module config
+  ansible.builtin.file:
+    path: /etc/modules-load.d/k3s.conf
+    state: absent
+
+- name: Remove K3s sysctl config
+  ansible.builtin.file:
+    path: /etc/sysctl.d/99-k3s.conf
+    state: absent
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Display reset complete message
+  ansible.builtin.debug:
+    msg: "K3s has been completely removed from this node"

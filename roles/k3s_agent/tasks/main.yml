@@ -1,0 +1,32 @@
+---
+# K3s Agent role - Install and configure K3s agent
+
+- name: Validate required variables
+  ansible.builtin.include_tasks: validate.yml
+  tags:
+    - k3s_agent
+    - validate
+
+- name: Create configuration files
+  ansible.builtin.include_tasks: config.yml
+  tags:
+    - k3s_agent
+    - config
+
+- name: Install K3s agent
+  ansible.builtin.include_tasks: install.yml
+  tags:
+    - k3s_agent
+    - install
+
+- name: Start K3s agent
+  ansible.builtin.include_tasks: service.yml
+  tags:
+    - k3s_agent
+    - service
+
+- name: Wait for agent to be ready
+  ansible.builtin.include_tasks: wait.yml
+  tags:
+    - k3s_agent
+    - wait

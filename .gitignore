@@ -1,0 +1,23 @@
+# Testing inventory (not committed)
+inventory.yml
+
+# Ansible artifacts
+*.retry
+.ansible/
+
+# Python
+*.pyc
+__pycache__/
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

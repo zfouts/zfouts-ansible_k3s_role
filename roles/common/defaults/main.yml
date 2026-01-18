@@ -1,0 +1,23 @@
+---
+# Common role defaults
+
+# K3s version to install
+common_k3s_version: stable  # stable, latest, v1.28.3+k3s1, etc.
+
+# Installation method
+common_k3s_install_method: script  # script or binary
+common_k3s_install_script_url: "https://get.k3s.io"
+
+# Directories
+common_k3s_config_dir: /etc/rancher/k3s
+common_k3s_data_dir: /var/lib/rancher/k3s
+
+# Network backend (for WireGuard installation)
+common_k3s_flannel_backend: vxlan  # vxlan, host-gw, wireguard-native, ipsec
+
+# Airgap installation
+common_k3s_airgap: false
+common_k3s_airgap_dir: ""  # Path on control node containing k3s binary and images
+
+# System package management
+common_k3s_package_update_cache: true

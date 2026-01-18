@@ -1,0 +1,38 @@
+---
+# Token generation for K3s cluster
+
+- name: Generate cluster token if not provided
+  when:
+    - k3s_server_token == ""
+    - k3s_server_init | bool
+  block:
+    - name: Check for existing token on disk
+      ansible.builtin.stat:
+        path: "{{ k3s_server_data_dir }}/server/token"
+      register: k3s_server_token_file_check
+
+    - name: Read existing token from disk
+      ansible.builtin.slurp:
+        src: "{{ k3s_server_data_dir }}/server/token"
+      register: k3s_server_existing_token_content
+      when: k3s_server_token_file_check.stat.exists
+      no_log: true
+
+    - name: Use existing token
+      ansible.builtin.set_fact:
+        k3s_server_token: "{{ k3s_server_existing_token_content.content | b64decode | trim }}"
+      when: k3s_server_token_file_check.stat.exists
+      no_log: true
+
+    - name: Generate new random token
+      ansible.builtin.set_fact:
+        k3s_server_token: "{{ lookup('password', '/dev/null chars=ascii_letters,digits length=48') }}"
+      when: not k3s_server_token_file_check.stat.exists
+      no_log: true
+
+- name: Verify token is available for non-init servers
+  ansible.builtin.assert:
+    that:
+      - k3s_server_token != ""
+    fail_msg: "k3s_token must be provided when joining an existing cluster"
+  when: not k3s_server_init | bool

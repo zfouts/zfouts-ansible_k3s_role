@@ -1,0 +1,33 @@
+---
+# Validate target system requirements
+
+- name: Check if running on supported OS
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Suse', 'Archlinux']
+    fail_msg: "K3s requires Debian, RedHat, Suse, or Arch based OS. Detected: {{ ansible_facts['os_family'] }}"
+    success_msg: "OS family {{ ansible_facts['os_family'] }} is supported"
+
+- name: Get kernel version
+  ansible.builtin.shell: |
+    set -o pipefail
+    uname -r | awk -F. '{print $1"."$2}'
+  args:
+    executable: /bin/bash
+  register: common_kernel_version
+  changed_when: false
+
+- name: Verify minimum kernel version
+  ansible.builtin.assert:
+    that:
+      - common_kernel_version.stdout is version('3.10', '>=')
+    fail_msg: "K3s requires kernel 3.10 or higher. Detected: {{ common_kernel_version.stdout }}"
+    success_msg: "Kernel version {{ common_kernel_version.stdout }} meets requirements"
+
+- name: Check available memory
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['memtotal_mb'] >= 512
+    fail_msg: "K3s requires at least 512MB RAM. Detected: {{ ansible_facts['memtotal_mb'] }}MB"
+    success_msg: "Memory {{ ansible_facts['memtotal_mb'] }}MB meets requirements"
+  when: ansible_facts['memtotal_mb'] is defined

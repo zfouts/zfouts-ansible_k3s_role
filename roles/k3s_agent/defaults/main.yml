@@ -1,0 +1,48 @@
+---
+# K3s Agent role defaults
+
+# Server URL (required)
+k3s_agent_server_url: ""
+
+# Cluster token (required)
+k3s_agent_token: ""
+
+# Version
+k3s_agent_version: stable
+
+# Node configuration
+k3s_agent_node_name: "{{ ansible_facts['hostname'] }}"
+k3s_agent_node_ip: "{{ ansible_facts['default_ipv4']['address'] | default(ansible_facts['all_ipv4_addresses'][0]) }}"
+k3s_agent_node_external_ip: ""
+k3s_agent_node_labels: []
+k3s_agent_node_taints: []
+
+# Flannel interface (optional)
+k3s_agent_flannel_iface: ""
+
+# Kubelet arguments
+k3s_agent_kubelet_args: []
+
+# Extra arguments (raw string)
+k3s_agent_extra_args: ""
+
+# Directories
+k3s_agent_config_dir: /etc/rancher/k3s
+k3s_agent_data_dir: /var/lib/rancher/k3s
+
+# Service configuration
+k3s_agent_service_enabled: true
+
+# Environment variables
+k3s_agent_env: {}
+
+# Private registries
+k3s_agent_registries: {}
+
+# Installation
+k3s_agent_install_method: script
+k3s_agent_airgap: false
+
+# Security
+k3s_agent_protect_kernel_defaults: false
+k3s_agent_selinux: false

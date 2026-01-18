@@ -1,0 +1,21 @@
+---
+# Manage K3s agent systemd service
+
+- name: Create K3s agent systemd service
+  ansible.builtin.template:
+    src: k3s-agent.service.j2
+    dest: /etc/systemd/system/k3s-agent.service
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart k3s-agent
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start K3s agent
+  ansible.builtin.systemd:
+    name: k3s-agent
+    state: started
+    enabled: "{{ k3s_agent_service_enabled }}"
+    daemon_reload: true

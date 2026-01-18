@@ -1,0 +1,101 @@
+---
+# K3s Server role defaults
+
+# Cluster initialization
+k3s_server_init: false  # Set true for first server in cluster
+
+# Cluster token (auto-generated if empty on init node)
+k3s_server_token: ""
+
+# Server URL for joining existing cluster
+k3s_server_url: ""
+
+# Version
+k3s_server_version: stable
+
+# Network configuration
+k3s_server_cluster_cidr: "10.42.0.0/16"
+k3s_server_service_cidr: "10.43.0.0/16"
+k3s_server_cluster_dns: "10.43.0.10"
+k3s_server_cluster_domain: cluster.local
+
+# CNI configuration
+k3s_server_cni: flannel  # flannel, calico, cilium, canal, none
+k3s_server_flannel_backend: vxlan  # vxlan, host-gw, wireguard-native, ipsec
+k3s_server_flannel_iface: ""
+
+# Node configuration
+k3s_server_node_name: "{{ ansible_facts['hostname'] }}"
+k3s_server_node_ip: "{{ ansible_facts['default_ipv4']['address'] | default(ansible_facts['all_ipv4_addresses'][0]) }}"
+k3s_server_node_external_ip: ""
+k3s_server_node_labels: []
+k3s_server_node_taints: []
+
+# TLS configuration
+k3s_server_tls_san: []
+
+# Disable components
+k3s_server_disable: []
+# Available: coredns, servicelb, traefik, local-storage, metrics-server
+
+# API server configuration
+k3s_server_https_listen_port: 6443
+k3s_server_advertise_address: ""
+k3s_server_bind_address: "0.0.0.0"
+
+# Datastore
+k3s_server_datastore_endpoint: ""  # External datastore (postgres, mysql, etcd)
+
+# etcd configuration
+k3s_server_etcd_expose_metrics: false
+k3s_server_etcd_snapshot_schedule_cron: "0 */12 * * *"
+k3s_server_etcd_snapshot_retention: 5
+k3s_server_etcd_snapshot_dir: ""
+k3s_server_etcd_s3: false
+k3s_server_etcd_s3_endpoint: ""
+k3s_server_etcd_s3_bucket: ""
+k3s_server_etcd_s3_region: us-east-1
+k3s_server_etcd_s3_folder: ""
+k3s_server_etcd_s3_access_key: ""
+k3s_server_etcd_s3_secret_key: ""
+
+# Security
+k3s_server_secrets_encryption: false
+k3s_server_protect_kernel_defaults: false
+k3s_server_selinux: false
+
+# Kubelet arguments
+k3s_server_kubelet_args: []
+
+# Kube-apiserver arguments
+k3s_server_kube_apiserver_args: []
+
+# Kube-controller-manager arguments
+k3s_server_kube_controller_args: []
+
+# Kube-scheduler arguments
+k3s_server_kube_scheduler_args: []
+
+# Extra arguments (raw string)
+k3s_server_extra_args: ""
+
+# Directories
+k3s_server_config_dir: /etc/rancher/k3s
+k3s_server_data_dir: /var/lib/rancher/k3s
+
+# Kubeconfig
+k3s_server_kubeconfig: /etc/rancher/k3s/k3s.yaml
+k3s_server_kubeconfig_mode: "0644"
+
+# Service configuration
+k3s_server_service_enabled: true
+
+# Environment variables
+k3s_server_env: {}
+
+# Private registries
+k3s_server_registries: {}
+
+# Installation
+k3s_server_install_method: script
+k3s_server_airgap: false

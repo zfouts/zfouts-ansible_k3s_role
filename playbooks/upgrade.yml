@@ -1,0 +1,127 @@
+---
+# Upgrade playbook - Rolling K3s upgrade
+#
+# Usage:
+#   ansible-playbook playbooks/upgrade.yml -i inventory.yml -e k3s_server_version=v1.29.0+k3s1 -e k3s_agent_version=v1.29.0+k3s1
+#
+# This performs a rolling upgrade:
+# 1. Upgrades servers one at a time
+# 2. Upgrades agents in parallel
+
+- name: Upgrade K3s servers
+  hosts: k3s_server
+  become: true
+  serial: 1  # One server at a time
+  tasks:
+    - name: Get current K3s version
+      ansible.builtin.command: k3s --version
+      register: _current_version
+      changed_when: false
+
+    - name: Display current version
+      ansible.builtin.debug:
+        msg: "Current: {{ _current_version.stdout_lines[0] }} -> Target: {{ k3s_server_version }}"
+
+    - name: Cordon node
+      ansible.builtin.command: >
+        kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml
+        cordon {{ ansible_facts['hostname'] }}
+      changed_when: true
+
+    - name: Drain node
+      ansible.builtin.command: >
+        kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml
+        drain {{ ansible_facts['hostname'] }}
+        --ignore-daemonsets --delete-emptydir-data --force --timeout=300s
+      changed_when: true
+      failed_when: false
+
+    - name: Download K3s install script
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /tmp/k3s_install.sh
+        mode: '0755'
+      changed_when: false
+
+    - name: Run K3s install script to upgrade
+      ansible.builtin.command: /tmp/k3s_install.sh
+      environment:
+        INSTALL_K3S_VERSION: "{{ k3s_server_version }}"
+        INSTALL_K3S_SKIP_START: "false"
+        INSTALL_K3S_EXEC: server
+      changed_when: true
+
+    - name: Wait for node to be ready
+      ansible.builtin.command: >
+        kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml
+        wait --for=condition=Ready node/{{ ansible_facts['hostname'] }} --timeout=300s
+      changed_when: false
+      retries: 30
+      delay: 10
+
+    - name: Uncordon node
+      ansible.builtin.command: >
+        kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml
+        uncordon {{ ansible_facts['hostname'] }}
+      changed_when: true
+
+    - name: Get new K3s version
+      ansible.builtin.command: k3s --version
+      register: _new_version
+      changed_when: false
+
+    - name: Display upgrade result
+      ansible.builtin.debug:
+        msg: "Server upgraded to: {{ _new_version.stdout_lines[0] }}"
+
+- name: Upgrade K3s agents
+  hosts: k3s_agent
+  become: true
+  tasks:
+    - name: Get current K3s version
+      ansible.builtin.command: k3s --version
+      register: _current_version
+      changed_when: false
+
+    - name: Display current version
+      ansible.builtin.debug:
+        msg: "Current: {{ _current_version.stdout_lines[0] }} -> Target: {{ k3s_agent_version }}"
+
+    - name: Download K3s install script
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /tmp/k3s_install.sh
+        mode: '0755'
+      changed_when: false
+
+    - name: Run K3s agent install script to upgrade
+      ansible.builtin.command: /tmp/k3s_install.sh
+      environment:
+        INSTALL_K3S_VERSION: "{{ k3s_agent_version }}"
+        INSTALL_K3S_SKIP_START: "false"
+        INSTALL_K3S_EXEC: agent
+      changed_when: true
+
+    - name: Get new K3s version
+      ansible.builtin.command: k3s --version
+      register: _new_version
+      changed_when: false
+
+    - name: Display upgrade result
+      ansible.builtin.debug:
+        msg: "Agent upgraded to: {{ _new_version.stdout_lines[0] }}"
+
+- name: Verify cluster health
+  hosts: k3s_server[0]
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Get cluster status
+      ansible.builtin.command: >
+        kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get nodes -o wide
+      register: _cluster_status
+      changed_when: false
+
+    - name: Display cluster status
+      ansible.builtin.debug:
+        msg: "{{ _cluster_status.stdout_lines }}"

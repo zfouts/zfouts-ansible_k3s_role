@@ -1,0 +1,20 @@
+---
+# Create required directories
+
+- name: Create K3s config directory
+  ansible.builtin.file:
+    path: "{{ common_k3s_config_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Create K3s data directory
+  ansible.builtin.file:
+    path: "{{ common_k3s_data_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Create K3s manifests directory
+  ansible.builtin.file:
+    path: "{{ common_k3s_data_dir }}/server/manifests"
+    state: directory
+    mode: "0755"

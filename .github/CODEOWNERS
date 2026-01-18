@@ -1,0 +1,10 @@
+# CODEOWNERS - Define who is responsible for code review
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+*       @zfouts
+
+# Owners for specific paths (uncomment and customize as needed)
+# /tasks/         @ansible-maintainer
+# /templates/     @ansible-maintainer
+# /.github/       @devops-team

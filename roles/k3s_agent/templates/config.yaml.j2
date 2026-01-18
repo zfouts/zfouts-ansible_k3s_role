@@ -1,0 +1,51 @@
+# {{ ansible_managed }}
+# K3s agent configuration
+
+# Server connection
+server: "{{ k3s_agent_server_url }}"
+token: "{{ k3s_agent_token }}"
+
+# Node configuration
+node-name: "{{ k3s_agent_node_name }}"
+{% if k3s_agent_node_ip != "" %}
+node-ip: "{{ k3s_agent_node_ip }}"
+{% endif %}
+{% if k3s_agent_node_external_ip != "" %}
+node-external-ip: "{{ k3s_agent_node_external_ip }}"
+{% endif %}
+
+{% if k3s_agent_node_labels | length > 0 %}
+node-label:
+{% for label in k3s_agent_node_labels %}
+  - "{{ label }}"
+{% endfor %}
+{% endif %}
+
+{% if k3s_agent_node_taints | length > 0 %}
+node-taint:
+{% for taint in k3s_agent_node_taints %}
+  - "{{ taint }}"
+{% endfor %}
+{% endif %}
+
+{% if k3s_agent_flannel_iface != "" %}
+flannel-iface: "{{ k3s_agent_flannel_iface }}"
+{% endif %}
+
+# Data directory
+data-dir: "{{ k3s_agent_data_dir }}"
+
+# Security
+{% if k3s_agent_protect_kernel_defaults | bool %}
+protect-kernel-defaults: true
+{% endif %}
+{% if k3s_agent_selinux | bool %}
+selinux: true
+{% endif %}
+
+{% if k3s_agent_kubelet_args | length > 0 %}
+kubelet-arg:
+{% for arg in k3s_agent_kubelet_args %}
+  - "{{ arg }}"
+{% endfor %}
+{% endif %}

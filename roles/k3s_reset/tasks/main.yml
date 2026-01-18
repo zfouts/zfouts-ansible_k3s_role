@@ -1,0 +1,20 @@
+---
+# K3s Reset role - Uninstall K3s completely
+
+- name: Stop K3s services
+  ansible.builtin.include_tasks: stop.yml
+  tags:
+    - k3s_reset
+    - stop
+
+- name: Run uninstall scripts
+  ansible.builtin.include_tasks: uninstall.yml
+  tags:
+    - k3s_reset
+    - uninstall
+
+- name: Clean up files
+  ansible.builtin.include_tasks: cleanup.yml
+  tags:
+    - k3s_reset
+    - cleanup

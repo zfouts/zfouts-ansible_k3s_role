@@ -1,0 +1,24 @@
+---
+# Install K3s agent binary
+
+- name: Install K3s using install script
+  when: k3s_agent_install_method == "script"
+  block:
+    - name: Run K3s install script for agent
+      ansible.builtin.shell: |
+        INSTALL_K3S_SKIP_START=true \
+        INSTALL_K3S_SKIP_ENABLE=true \
+        {% if k3s_agent_version not in ['stable', 'latest'] %}
+        INSTALL_K3S_VERSION="{{ k3s_agent_version }}" \
+        {% else %}
+        INSTALL_K3S_CHANNEL="{{ k3s_agent_version }}" \
+        {% endif %}
+        {% if k3s_agent_airgap | bool %}
+        INSTALL_K3S_SKIP_DOWNLOAD=true \
+        {% endif %}
+        /tmp/k3s-install.sh
+      args:
+        creates: /usr/local/bin/k3s
+      environment:
+        INSTALL_K3S_EXEC: agent
+      notify: restart k3s-agent

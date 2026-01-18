@@ -1,0 +1,25 @@
+---
+# Create K3s agent configuration files
+
+- name: Create K3s agent config file
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: "{{ k3s_agent_config_dir }}/config.yaml"
+    mode: "0600"
+  notify: restart k3s-agent
+
+- name: Create K3s environment file
+  ansible.builtin.template:
+    src: k3s.env.j2
+    dest: /etc/default/k3s-agent
+    mode: "0600"
+  when: k3s_agent_env | length > 0
+  notify: restart k3s-agent
+
+- name: Create registries configuration
+  ansible.builtin.template:
+    src: registries.yaml.j2
+    dest: "{{ k3s_agent_config_dir }}/registries.yaml"
+    mode: "0600"
+  when: k3s_agent_registries | length > 0
+  notify: restart k3s-agent

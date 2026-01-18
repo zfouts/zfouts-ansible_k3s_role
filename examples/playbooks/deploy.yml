@@ -1,0 +1,86 @@
+---
+# Example Wrapper Playbook for K3s Deployment
+#
+# This shows how to use the k3s.cluster collection in your own playbook.
+# You can add pre/post tasks, include other roles, or customize behavior.
+#
+# Usage:
+#   ansible-playbook deploy.yml -i inventory/hosts.yml
+#
+# Requirements:
+#   ansible-galaxy collection install k3s.cluster
+
+# =============================================================================
+# Pre-deployment tasks (optional)
+# =============================================================================
+- name: Pre-deployment checks
+  hosts: k3s_cluster
+  gather_facts: false
+  tasks:
+    - name: Verify connectivity
+      ansible.builtin.ping:
+
+    - name: Gather facts
+      ansible.builtin.setup:
+        gather_subset:
+          - min
+
+    - name: Display target hosts
+      ansible.builtin.debug:
+        msg: "Deploying K3s to {{ inventory_hostname }} ({{ ansible_host | default(inventory_hostname) }})"
+
+# =============================================================================
+# Main K3s deployment
+# =============================================================================
+- name: Deploy K3s cluster
+  ansible.builtin.import_playbook: k3s.cluster.site
+
+# =============================================================================
+# Post-deployment tasks (optional)
+# =============================================================================
+- name: Post-deployment configuration
+  hosts: k3s_server[0]
+  gather_facts: false
+  tasks:
+    - name: Wait for all nodes to be ready
+      ansible.builtin.command:
+        cmd: kubectl wait --for=condition=Ready nodes --all --timeout=300s
+      changed_when: false
+      register: nodes_ready
+      retries: 5
+      delay: 10
+      until: nodes_ready.rc == 0
+
+    - name: Display cluster info
+      ansible.builtin.command:
+        cmd: kubectl cluster-info
+      changed_when: false
+      register: cluster_info
+
+    - name: Show cluster info
+      ansible.builtin.debug:
+        var: cluster_info.stdout_lines
+
+    - name: Get node status
+      ansible.builtin.command:
+        cmd: kubectl get nodes -o wide
+      changed_when: false
+      register: node_status
+
+    - name: Show node status
+      ansible.builtin.debug:
+        var: node_status.stdout_lines
+
+    # Uncomment to copy kubeconfig to local machine
+    # - name: Fetch kubeconfig
+    #   ansible.builtin.fetch:
+    #     src: /etc/rancher/k3s/k3s.yaml
+    #     dest: "{{ playbook_dir }}/../kubeconfig.yaml"
+    #     flat: true
+    #
+    # - name: Update kubeconfig server address
+    #   ansible.builtin.replace:
+    #     path: "{{ playbook_dir }}/../kubeconfig.yaml"
+    #     regexp: 'https://127.0.0.1:6443'
+    #     replace: "https://{{ ansible_host }}:6443"
+    #     delegate_to: localhost

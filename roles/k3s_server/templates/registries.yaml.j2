@@ -1,0 +1,40 @@
+# {{ ansible_managed }}
+# K3s registry configuration
+
+{% if k3s_server_registries.mirrors is defined %}
+mirrors:
+{% for registry, config in k3s_server_registries.mirrors.items() %}
+  "{{ registry }}":
+    endpoint:
+{% for endpoint in config.endpoint %}
+      - "{{ endpoint }}"
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+{% if k3s_server_registries.configs is defined %}
+configs:
+{% for registry, config in k3s_server_registries.configs.items() %}
+  "{{ registry }}":
+{% if config.auth is defined %}
+    auth:
+      username: "{{ config.auth.username }}"
+      password: "{{ config.auth.password }}"
+{% endif %}
+{% if config.tls is defined %}
+    tls:
+{% if config.tls.cert_file is defined %}
+      cert_file: "{{ config.tls.cert_file }}"
+{% endif %}
+{% if config.tls.key_file is defined %}
+      key_file: "{{ config.tls.key_file }}"
+{% endif %}
+{% if config.tls.ca_file is defined %}
+      ca_file: "{{ config.tls.ca_file }}"
+{% endif %}
+{% if config.tls.insecure_skip_verify is defined %}
+      insecure_skip_verify: {{ config.tls.insecure_skip_verify | lower }}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}

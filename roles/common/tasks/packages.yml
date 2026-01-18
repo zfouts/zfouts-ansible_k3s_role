@@ -1,0 +1,59 @@
+---
+# Install required system packages
+
+- name: Install required packages (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - curl
+      - ca-certificates
+      - gnupg
+    state: present
+    update_cache: "{{ common_k3s_package_update_cache }}"
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install required packages (RedHat/CentOS)
+  ansible.builtin.dnf:
+    name:
+      - curl
+      - ca-certificates
+    state: present
+    update_cache: "{{ common_k3s_package_update_cache }}"
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Install required packages (SUSE)
+  community.general.zypper:
+    name:
+      - curl
+      - ca-certificates
+    state: present
+    update_cache: "{{ common_k3s_package_update_cache }}"
+  when: ansible_facts['os_family'] == "Suse"
+
+- name: Install required packages (Arch)
+  community.general.pacman:
+    name:
+      - curl
+      - ca-certificates
+    state: present
+    update_cache: "{{ common_k3s_package_update_cache }}"
+  when: ansible_facts['os_family'] == "Archlinux"
+
+# WireGuard packages for wireguard-native backend
+- name: Install WireGuard packages (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - wireguard
+      - wireguard-tools
+    state: present
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - common_k3s_flannel_backend == "wireguard-native"
+
+- name: Install WireGuard packages (RedHat/CentOS)
+  ansible.builtin.dnf:
+    name:
+      - wireguard-tools
+    state: present
+  when:
+    - ansible_facts['os_family'] == "RedHat"
+    - common_k3s_flannel_backend == "wireguard-native"

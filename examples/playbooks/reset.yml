@@ -1,0 +1,46 @@
+---
+# Example Wrapper Playbook for K3s Reset/Uninstall
+#
+# This shows how to safely reset a K3s cluster with confirmation.
+#
+# Usage:
+#   ansible-playbook reset.yml -i inventory/hosts.yml
+#
+# With auto-confirm (DANGEROUS):
+#   ansible-playbook reset.yml -i inventory/hosts.yml -e confirm_reset=yes
+
+- name: Confirm cluster reset
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Prompt for confirmation
+      ansible.builtin.pause:
+        prompt: |
+
+          ╔═══════════════════════════════════════════════════════════════╗
+          ║                    ⚠️  WARNING ⚠️                              ║
+          ╠═══════════════════════════════════════════════════════════════╣
+          ║  You are about to DESTROY the K3s cluster!                   ║
+          ║                                                               ║
+          ║  This will:                                                   ║
+          ║    • Stop all K3s services                                   ║
+          ║    • Remove all Kubernetes workloads                         ║
+          ║    • Delete all cluster data                                 ║
+          ║    • Remove K3s binaries                                     ║
+          ║                                                               ║
+          ║  THIS ACTION CANNOT BE UNDONE!                               ║
+          ╚═══════════════════════════════════════════════════════════════╝
+
+          Type 'yes' to confirm
+      register: confirm_prompt
+      when: confirm_reset is not defined or confirm_reset != 'yes'
+
+    - name: Validate confirmation
+      ansible.builtin.fail:
+        msg: "Reset cancelled by user"
+      when:
+        - confirm_reset is not defined or confirm_reset != 'yes'
+        - confirm_prompt.user_input != 'yes'
+
+- name: Reset K3s cluster
+  ansible.builtin.import_playbook: k3s.cluster.reset

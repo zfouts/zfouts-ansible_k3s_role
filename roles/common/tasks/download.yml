@@ -1,0 +1,12 @@
+---
+# Download K3s installation script
+
+- name: Download K3s installation script
+  ansible.builtin.get_url:
+    url: "{{ common_k3s_install_script_url }}"
+    dest: /tmp/k3s-install.sh
+    mode: "0755"
+  register: common_download_script
+  retries: 3
+  delay: 5
+  until: common_download_script is succeeded

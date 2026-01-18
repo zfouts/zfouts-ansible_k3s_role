@@ -1,0 +1,65 @@
+---
+# Configure required kernel modules
+
+- name: Check if running in container
+  ansible.builtin.stat:
+    path: /.dockerenv
+  register: common_dockerenv
+
+- name: Set container fact
+  ansible.builtin.set_fact:
+    common_is_container: "{{ common_dockerenv.stat.exists | default(false) or (ansible_facts['virtualization_type'] | default('')) in ['docker', 'container', 'podman', 'lxc'] }}"
+
+- name: Ensure br_netfilter module is loaded
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+  when: not common_is_container
+
+- name: Ensure overlay module is loaded
+  community.general.modprobe:
+    name: overlay
+    state: present
+  when: not common_is_container
+
+- name: Load WireGuard kernel module
+  community.general.modprobe:
+    name: wireguard
+    state: present
+  when:
+    - common_k3s_flannel_backend == "wireguard-native"
+    - not common_is_container
+
+- name: Ensure kernel modules load on boot
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/k3s.conf
+    content: |
+      br_netfilter
+      overlay
+    mode: "0644"
+  when: not common_is_container
+
+- name: Ensure WireGuard module loads on boot
+  ansible.builtin.lineinfile:
+    path: /etc/modules-load.d/k3s.conf
+    line: wireguard
+  when:
+    - common_k3s_flannel_backend == "wireguard-native"
+    - not common_is_container
+
+- name: Configure sysctl for networking
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/99-k3s.conf
+    reload: true
+  loop:
+    - { name: "net.bridge.bridge-nf-call-iptables", value: "1" }
+    - { name: "net.bridge.bridge-nf-call-ip6tables", value: "1" }
+    - { name: "net.ipv4.ip_forward", value: "1" }
+  when: not common_is_container
+
+- name: Display container skip notice
+  ansible.builtin.debug:
+    msg: "Skipping kernel configuration - running in container environment"
+  when: common_is_container

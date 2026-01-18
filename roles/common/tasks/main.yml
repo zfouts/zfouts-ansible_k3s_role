@@ -1,0 +1,42 @@
+---
+# Common role - OS preparation and validation
+
+- name: Validate target OS
+  ansible.builtin.include_tasks: validate.yml
+  tags:
+    - common
+    - validate
+
+- name: Install required packages
+  ansible.builtin.include_tasks: packages.yml
+  tags:
+    - common
+    - packages
+
+- name: Configure kernel modules
+  ansible.builtin.include_tasks: kernel.yml
+  tags:
+    - common
+    - kernel
+
+- name: Create required directories
+  ansible.builtin.include_tasks: directories.yml
+  tags:
+    - common
+    - directories
+
+- name: Setup airgap artifacts
+  ansible.builtin.include_tasks: airgap.yml
+  when: common_k3s_airgap | bool
+  tags:
+    - common
+    - airgap
+
+- name: Download K3s install script
+  ansible.builtin.include_tasks: download.yml
+  when:
+    - common_k3s_install_method == "script"
+    - not common_k3s_airgap | bool
+  tags:
+    - common
+    - download

@@ -1,0 +1,38 @@
+---
+# Validate required variables for K3s agent
+
+- name: Verify server URL is provided
+  ansible.builtin.assert:
+    that:
+      - k3s_agent_server_url != ""
+    fail_msg: "k3s_server_url must be provided for agent nodes"
+    success_msg: "Server URL: {{ k3s_agent_server_url }}"
+
+- name: Verify cluster token is provided
+  ansible.builtin.assert:
+    that:
+      - k3s_agent_token != ""
+    fail_msg: "k3s_token must be provided for agent nodes"
+    success_msg: "Cluster token is configured"
+  no_log: true
+
+- name: Check if K3s is already installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_agent_k3s_binary
+
+- name: Get installed K3s version
+  ansible.builtin.command: /usr/local/bin/k3s --version
+  register: k3s_agent_k3s_installed_version
+  changed_when: false
+  failed_when: false
+  when: k3s_agent_k3s_binary.stat.exists
+
+- name: Display K3s installation status
+  ansible.builtin.debug:
+    msg: >-
+      {% if k3s_agent_k3s_binary.stat.exists %}
+      K3s installed: {{ k3s_agent_k3s_installed_version.stdout_lines[0] | default('unknown') }}
+      {% else %}
+      K3s is not installed
+      {% endif %}

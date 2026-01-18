@@ -1,0 +1,24 @@
+---
+# Stop K3s services
+
+- name: Stop K3s server service
+  ansible.builtin.systemd:
+    name: k3s
+    state: stopped
+    enabled: false
+  failed_when: false
+
+- name: Stop K3s agent service
+  ansible.builtin.systemd:
+    name: k3s-agent
+    state: stopped
+    enabled: false
+  failed_when: false
+
+- name: Kill remaining K3s processes
+  ansible.builtin.shell: |
+    pkill -9 -f "k3s server" || true
+    pkill -9 -f "k3s agent" || true
+    pkill -9 -f "containerd" || true
+  changed_when: false
+  failed_when: false

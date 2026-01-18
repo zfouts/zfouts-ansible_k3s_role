@@ -1,0 +1,44 @@
+---
+# K3s Server role - Install and configure K3s server
+
+- name: Check existing installation
+  ansible.builtin.include_tasks: preflight.yml
+  tags:
+    - k3s_server
+    - preflight
+
+- name: Generate cluster token
+  ansible.builtin.include_tasks: token.yml
+  tags:
+    - k3s_server
+    - token
+
+- name: Create configuration files
+  ansible.builtin.include_tasks: config.yml
+  tags:
+    - k3s_server
+    - config
+
+- name: Install K3s server
+  ansible.builtin.include_tasks: install.yml
+  tags:
+    - k3s_server
+    - install
+
+- name: Start K3s server
+  ansible.builtin.include_tasks: service.yml
+  tags:
+    - k3s_server
+    - service
+
+- name: Wait for K3s to be ready
+  ansible.builtin.include_tasks: wait.yml
+  tags:
+    - k3s_server
+    - wait
+
+- name: Configure kubectl
+  ansible.builtin.include_tasks: kubectl.yml
+  tags:
+    - k3s_server
+    - kubectl

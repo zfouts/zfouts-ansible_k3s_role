@@ -1,0 +1,51 @@
+---
+# Site playbook - Full K3s cluster deployment
+#
+# Usage:
+#   ansible-playbook playbooks/site.yml -i inventory.yml
+#
+# Or via collection:
+#   ansible-playbook k3s.cluster.site -i inventory.yml
+
+- name: Prepare all K3s nodes
+  hosts: k3s_cluster
+  become: true
+  gather_facts: true
+  roles:
+    - role: common
+
+- name: Deploy K3s servers
+  hosts: k3s_server
+  become: true
+  serial: 1  # Deploy servers one at a time for HA
+  roles:
+    - role: k3s_server
+  vars:
+    k3s_server_init: "{{ inventory_hostname == groups['k3s_server'][0] }}"
+    k3s_server_token: "{{ hostvars[groups['k3s_server'][0]]['k3s_server_node_token'] | default('') }}"
+
+- name: Deploy K3s agents
+  hosts: k3s_agent
+  become: true
+  roles:
+    - role: k3s_agent
+  vars:
+    k3s_agent_server_url: >
+      https://{{ hostvars[groups['k3s_server'][0]]['ansible_host'] |
+      default(groups['k3s_server'][0]) }}:6443
+    k3s_agent_token: "{{ hostvars[groups['k3s_server'][0]]['k3s_server_node_token'] }}"
+
+- name: Display cluster status
+  hosts: k3s_server[0]
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Get cluster nodes
+      ansible.builtin.command: >
+        kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get nodes -o wide
+      register: _cluster_status
+      changed_when: false
+
+    - name: Show cluster status
+      ansible.builtin.debug:
+        msg: "{{ _cluster_status.stdout_lines }}"

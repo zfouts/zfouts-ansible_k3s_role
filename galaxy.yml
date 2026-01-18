@@ -1,0 +1,36 @@
+---
+namespace: k3s
+name: cluster
+version: 1.0.0
+readme: README.md
+authors:
+  - zfouts
+description: >
+  Ansible collection for installing and managing K3s Kubernetes clusters.
+  Supports server and agent deployment, HA configurations, airgap installations,
+  and complete lifecycle management.
+license:
+  - MIT
+license_file: LICENSE
+tags:
+  - kubernetes
+  - k3s
+  - k8s
+  - containers
+  - orchestration
+  - rancher
+  - cloud
+  - clustering
+dependencies: {}
+repository: https://github.com/zfouts/ansible_k3s_role
+documentation: https://github.com/zfouts/ansible_k3s_role
+homepage: https://github.com/zfouts/ansible_k3s_role
+issues: https://github.com/zfouts/ansible_k3s_role/issues
+build_ignore:
+  - .git
+  - .github
+  - .gitignore
+  - .yamllint
+  - .ansible-lint
+  - tests
+  - "*.tar.gz"

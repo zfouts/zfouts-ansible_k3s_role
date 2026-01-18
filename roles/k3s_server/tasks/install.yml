@@ -1,0 +1,34 @@
+---
+# Install K3s server binary
+
+- name: Install K3s using install script
+  when: k3s_server_install_method == "script"
+  block:
+    - name: Run K3s install script
+      ansible.builtin.shell: |
+        INSTALL_K3S_SKIP_START=true \
+        INSTALL_K3S_SKIP_ENABLE=true \
+        {% if k3s_server_version not in ['stable', 'latest'] %}
+        INSTALL_K3S_VERSION="{{ k3s_server_version }}" \
+        {% else %}
+        INSTALL_K3S_CHANNEL="{{ k3s_server_version }}" \
+        {% endif %}
+        {% if k3s_server_airgap | bool %}
+        INSTALL_K3S_SKIP_DOWNLOAD=true \
+        {% endif %}
+        /tmp/k3s-install.sh
+      args:
+        creates: /usr/local/bin/k3s
+      environment:
+        INSTALL_K3S_EXEC: server
+      notify: restart k3s
+
+- name: Create symlinks for kubectl and crictl
+  ansible.builtin.file:
+    src: /usr/local/bin/k3s
+    dest: "/usr/local/bin/{{ item }}"
+    state: link
+  loop:
+    - kubectl
+    - crictl
+    - ctr

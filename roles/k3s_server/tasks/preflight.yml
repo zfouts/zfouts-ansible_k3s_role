@@ -1,0 +1,54 @@
+---
+# Preflight checks for K3s server
+
+- name: Check if K3s is already installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_server_k3s_binary
+
+- name: Get installed K3s version
+  ansible.builtin.command: /usr/local/bin/k3s --version
+  register: k3s_server_k3s_installed_version
+  changed_when: false
+  failed_when: false
+  when: k3s_server_k3s_binary.stat.exists
+
+- name: Display K3s installation status
+  ansible.builtin.debug:
+    msg: >-
+      {% if k3s_server_k3s_binary.stat.exists %}
+      K3s installed: {{ k3s_server_k3s_installed_version.stdout_lines[0] | default('unknown') }}
+      {% else %}
+      K3s is not installed
+      {% endif %}
+
+- name: Check for existing etcd data
+  ansible.builtin.stat:
+    path: "{{ k3s_server_data_dir }}/server/db/etcd"
+  register: k3s_server_k3s_etcd_exists
+
+- name: Check for existing token file
+  ansible.builtin.stat:
+    path: "{{ k3s_server_data_dir }}/server/token"
+  register: k3s_server_k3s_token_file
+
+- name: Read existing token
+  ansible.builtin.slurp:
+    src: "{{ k3s_server_data_dir }}/server/token"
+  register: k3s_server_k3s_existing_token
+  when: k3s_server_k3s_token_file.stat.exists
+  no_log: true
+
+- name: Validate token compatibility
+  ansible.builtin.assert:
+    that:
+      - k3s_server_token == "" or k3s_server_token == (k3s_server_k3s_existing_token.content | b64decode | trim)
+    fail_msg: |
+      Token mismatch detected with existing etcd data!
+      The cluster was initialized with a different token.
+      Either use the existing token or reset the cluster first.
+    success_msg: "Token validation passed"
+  when:
+    - k3s_server_k3s_etcd_exists.stat.exists
+    - k3s_server_k3s_token_file.stat.exists
+    - k3s_server_token != ""

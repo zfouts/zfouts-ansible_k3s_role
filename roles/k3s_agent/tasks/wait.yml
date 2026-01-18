@@ -1,0 +1,16 @@
+---
+# Wait for K3s agent to be ready
+
+- name: Wait for agent kubelet config
+  ansible.builtin.wait_for:
+    path: "{{ k3s_agent_data_dir }}/agent/kubelet.kubeconfig"
+    timeout: 300
+
+- name: Verify agent is running
+  ansible.builtin.systemd:
+    name: k3s-agent
+  register: k3s_agent_agent_service
+
+- name: Display agent status
+  ansible.builtin.debug:
+    msg: "K3s agent is {{ k3s_agent_agent_service.status.ActiveState }}"

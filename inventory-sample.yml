@@ -1,0 +1,76 @@
+---
+# Sample inventory for K3s cluster deployment
+#
+# Copy this file: cp inventory-sample.yml inventory.yml
+# Then edit with your node IPs/hostnames
+
+all:
+  children:
+    k3s_cluster:
+      children:
+        k3s_server:
+          hosts:
+            # First server will be the cluster initializer
+            server1:
+              ansible_host: 192.168.1.10
+
+            # Additional servers for HA (optional, use odd numbers: 1, 3, 5)
+            # server2:
+            #   ansible_host: 192.168.1.11
+            # server3:
+            #   ansible_host: 192.168.1.12
+        k3s_agent:
+          hosts:
+            # Worker nodes
+            agent1:
+              ansible_host: 192.168.1.20
+            agent2:
+              ansible_host: 192.168.1.21
+
+            # agent3:
+            #   ansible_host: 192.168.1.22
+
+  vars:
+    # SSH connection
+    ansible_user: root
+    # ansible_ssh_private_key_file: ~/.ssh/id_rsa
+
+    # K3s version
+    k3s_version: stable  # or specific: v1.28.3+k3s1
+
+    # Network configuration
+    k3s_cluster_cidr: "10.42.0.0/16"
+    k3s_service_cidr: "10.43.0.0/16"
+
+    # CNI
+    k3s_cni: flannel
+    k3s_flannel_backend: vxlan
+
+    # Disable default components (optional)
+    # k3s_disable:
+    #   - traefik
+    #   - servicelb
+
+    # TLS SANs for external access (optional)
+    # k3s_tls_san:
+    #   - k3s.example.com
+    #   - 10.0.0.100
+
+    # Node labels (optional)
+    # k3s_node_labels:
+    #   - "environment=production"
+
+    # Airgap installation (optional)
+    # k3s_airgap: true
+    # k3s_airgap_dir: ./airgap-files
+
+    # etcd snapshots (optional)
+    # k3s_etcd_snapshot_schedule_cron: "0 */6 * * *"
+    # k3s_etcd_snapshot_retention: 10
+
+    # Private registry (optional)
+    # k3s_registries:
+    #   mirrors:
+    #     docker.io:
+    #       endpoint:
+    #         - "https://mirror.example.com"

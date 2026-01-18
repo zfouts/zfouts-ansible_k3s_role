@@ -1,0 +1,21 @@
+---
+# Manage K3s server systemd service
+
+- name: Create K3s server systemd service
+  ansible.builtin.template:
+    src: k3s.service.j2
+    dest: /etc/systemd/system/k3s.service
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart k3s
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start K3s server
+  ansible.builtin.systemd:
+    name: k3s
+    state: started
+    enabled: "{{ k3s_server_service_enabled }}"
+    daemon_reload: true

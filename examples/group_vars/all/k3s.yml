@@ -1,0 +1,124 @@
+---
+# K3s Cluster Configuration
+# Copy this file to your project's group_vars/all/ directory and customize
+
+# =============================================================================
+# K3s Version
+# =============================================================================
+# Specify a version or leave commented for latest stable
+# k3s_server_version: "v1.29.0+k3s1"
+
+# =============================================================================
+# Server Configuration
+# =============================================================================
+
+# Taint server nodes to prevent workload scheduling
+# Set to false for single-node clusters
+k3s_server_taint: true
+
+# TLS Subject Alternative Names for the API server certificate
+# Include: load balancer IPs/hostnames, server IPs, any DNS names for API access
+k3s_tls_san: []
+#   - "k3s-api.example.com"
+#   - "192.168.1.100"
+
+# Cluster CIDR ranges (defaults shown)
+# k3s_cluster_cidr: "10.42.0.0/16"
+# k3s_service_cidr: "10.43.0.0/16"
+# k3s_cluster_dns: "10.43.0.10"
+
+# =============================================================================
+# Component Control
+# =============================================================================
+
+# Disable built-in components (to use external alternatives)
+k3s_disable:
+  []
+  # - traefik          # Disable to use nginx-ingress, etc.
+  # - servicelb        # Disable to use MetalLB
+  # - local-storage    # Disable to use Longhorn, etc.
+  # - metrics-server   # Disable to use custom metrics
+
+# =============================================================================
+# CNI Configuration
+# =============================================================================
+
+# Use external CNI (Calico, Cilium, etc.) instead of Flannel
+# k3s_cni: "calico"  # Disables flannel, you must install CNI separately
+
+# Flannel backend (if using built-in Flannel)
+# k3s_flannel_backend: "vxlan"  # Options: vxlan, host-gw, wireguard-native
+
+# =============================================================================
+# Feature Gates & API Server Arguments
+# =============================================================================
+
+# Kubernetes feature gates
+k3s_feature_gates: []
+#   - "GracefulNodeShutdown=true"
+#   - "TopologyAwareHints=true"
+
+# Additional kube-apiserver arguments
+k3s_kube_apiserver_args: []
+#   - "audit-log-path=/var/log/kubernetes/audit.log"
+#   - "audit-log-maxage=30"
+
+# Additional kube-controller-manager arguments
+k3s_kube_controller_manager_args: []
+
+# Additional kube-scheduler arguments
+k3s_kube_scheduler_args: []
+
+# Additional kubelet arguments
+k3s_kubelet_args: []
+#   - "max-pods=150"
+
+# =============================================================================
+# Agent Configuration
+# =============================================================================
+
+# Node labels (applied to all agents)
+k3s_node_labels: []
+#   - "node-type=worker"
+#   - "environment=production"
+
+# Node taints (applied to all agents)
+k3s_node_taints: []
+#   - "dedicated=gpu:NoSchedule"
+
+# =============================================================================
+# Private Registry Configuration
+# =============================================================================
+
+# Configure private registries (mirrors and authentication)
+k3s_registries: {}
+# k3s_registries:
+#   mirrors:
+#     "docker.io":
+#       endpoint:
+#         - "https://registry.example.com"
+#   configs:
+#     "registry.example.com":
+#       auth:
+#         username: myuser
+#         password: mypassword
+#       tls:
+#         insecure_skip_verify: false
+
+# =============================================================================
+# Airgap Installation
+# =============================================================================
+
+# Enable airgap mode (requires pre-staged binaries and images)
+# k3s_airgap: true
+# k3s_airgap_images_path: "/var/lib/rancher/k3s/agent/images"
+
+# =============================================================================
+# Environment Variables
+# =============================================================================
+
+# Additional environment variables for k3s service
+k3s_env_vars: {}
+#   HTTP_PROXY: "http://proxy.example.com:3128"
+#   HTTPS_PROXY: "http://proxy.example.com:3128"
+#   NO_PROXY: "localhost,127.0.0.1,10.0.0.0/8,192.168.0.0/16"

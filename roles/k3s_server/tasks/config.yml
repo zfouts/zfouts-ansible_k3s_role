@@ -1,0 +1,25 @@
+---
+# Create K3s configuration files
+
+- name: Create K3s config file
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: "{{ k3s_server_config_dir }}/config.yaml"
+    mode: "0600"
+  notify: restart k3s
+
+- name: Create K3s environment file
+  ansible.builtin.template:
+    src: k3s.env.j2
+    dest: /etc/default/k3s
+    mode: "0600"
+  when: k3s_server_env | length > 0
+  notify: restart k3s
+
+- name: Create registries configuration
+  ansible.builtin.template:
+    src: registries.yaml.j2
+    dest: "{{ k3s_server_config_dir }}/registries.yaml"
+    mode: "0600"
+  when: k3s_server_registries | length > 0
+  notify: restart k3s

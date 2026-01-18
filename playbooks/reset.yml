@@ -1,0 +1,32 @@
+---
+# Reset playbook - Complete K3s removal
+#
+# Usage:
+#   ansible-playbook playbooks/reset.yml -i inventory.yml
+#
+# WARNING: This will completely remove K3s and all data!
+
+- name: Reset K3s agents first
+  hosts: k3s_agent
+  become: true
+  gather_facts: true
+  roles:
+    - role: k3s_reset
+
+- name: Reset K3s servers
+  hosts: k3s_server
+  become: true
+  gather_facts: true
+  serial: 1  # Reset servers one at a time
+  roles:
+    - role: k3s_reset
+
+- name: Confirm reset complete
+  hosts: k3s_cluster
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Reset complete
+      ansible.builtin.debug:
+        msg: "K3s has been completely removed from all nodes"
+      run_once: true
